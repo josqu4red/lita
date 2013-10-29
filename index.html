@@ -33,9 +33,9 @@
         <h1>
 <a name="lita" class="anchor" href="#lita"><span class="octicon octicon-link"></span></a>Lita</h1>
 
-<p><img src="http://f.cl.ly/items/0c271a2P3k2V180B1R0X/lita.jpg" alt="Lita"></p>
-
 <p><a href="http://badge.fury.io/rb/lita"><img src="https://badge.fury.io/rb/lita.png" alt="Gem Version"></a></p>
+
+<p><img src="http://f.cl.ly/items/0c271a2P3k2V180B1R0X/lita.jpg" alt="Lita"></p>
 
 <p><strong>Lita</strong> is a chat bot written in Ruby with persistent storage provided by <a href="http://redis.io/">Redis</a>. It can connect to any chat service (given that there is an <a href="#adapters">adapter</a> available for it) and can have new behavior added via <a href="#handlers">handlers</a>. The plugin system is managed with regular RubyGems and <a href="http://gembundler.com/">Bundler</a>.</p>
 
@@ -333,6 +333,18 @@ Lita: auth remove joe committers
 <p>Since the <code>trigger</code> method is available on <code>Lita::Robot</code>, it can be used from anywhere in the Lita runtime (both adapters and handlers).</p>
 
 <h3>
+<a name="built-in-events" class="anchor" href="#built-in-events"><span class="octicon octicon-link"></span></a>Built-in events</h3>
+
+<p>Lita has a few built-in events:</p>
+
+<ul>
+<li>
+<code>:loaded</code> - Fired when the <code>Lita::Robot</code> object has been initialized during start up. This can be used as a hook point for handlers to define routes that depend on user configuration not known until runtime, run migrations on data in Redis, or other start up tasks.</li>
+<li>
+<code>:shut_down_started</code> - Fired when the robot first begins shutting down.</li>
+<li>
+<code>:shut_down_completed</code> - Fired when the robot has finished shutting down both the built-in web server and the chat adapter.</li>
+</ul><h3>
 <a name="handler-specific-configuration" class="anchor" href="#handler-specific-configuration"><span class="octicon octicon-link"></span></a>Handler-specific configuration</h3>
 
 <p>If you want your handler to expose config settings to the user, use the class-level <code>default_config</code> method. This method accepts a single config object as an argument, which will be exposed to the user as <code>Lita.config.handlers.your_handler_namespace</code>.</p>
