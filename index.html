@@ -118,6 +118,7 @@
 <div class="highlight highlight-ruby"><pre><span class="no">Lita</span><span class="o">.</span><span class="n">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
   <span class="n">config</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"Sir Bottington"</span>
   <span class="n">config</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">mention_name</span> <span class="o">=</span> <span class="s2">"bottington"</span>
+  <span class="n">config</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">alias</span> <span class="o">=</span> <span class="s2">"/"</span>
   <span class="n">config</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">adapter</span> <span class="o">=</span> <span class="ss">:example_chat_service</span>
   <span class="n">config</span><span class="o">.</span><span class="n">adapter</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="s2">"bottington"</span>
   <span class="n">config</span><span class="o">.</span><span class="n">adapter</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="s2">"secret"</span>
@@ -138,6 +139,8 @@
 <code>name</code> (String) - The display name the bot will use on the chat service. Default: <code>"Lita"</code>.</li>
 <li>
 <code>mention_name</code> (String) - The name the bot will look for in messages to determine if the message is being addressed to it. Usually this is the same as the display name, but in some cases it may not be. For example, in HipChat, display names are required to be a first and last name, such as "Lita Bot", whereas the mention system would use a name like "LitaBot". Default: <code>Lita.config.robot.name</code>.</li>
+<li>
+<code>alias</code> (String) - The alias the bot will look for in messages to determine if the message is being addressed to it. Useful if you want to use something shorter than the robot's name or mention name, such as a slash, to send it a command. No default.</li>
 <li>
 <code>adapter</code> (Symbol, String) - The adapter to load. Default: <code>:shell</code>.</li>
 <li>
@@ -205,7 +208,7 @@ Lita: auth remove joe committers
 <h3>
 <a name="example" class="anchor" href="#example"><span class="octicon octicon-link"></span></a>Example</h3>
 
-<p>Here is a bare bones example of an adapter for the fictious chat service, FancyChat.</p>
+<p>Here is a bare bones example of an adapter for the fictitious chat service, FancyChat.</p>
 
 <div class="highlight highlight-ruby"><pre><span class="k">module</span> <span class="nn">Lita</span>
   <span class="k">module</span> <span class="nn">Adapters</span>
@@ -267,7 +270,7 @@ Lita: auth remove joe committers
 <code>:help</code> (Hash) - A map of example invocations of the route and descriptions of what they do. These values will be used to generate the listing for the built-in "help" handler. The robot's mention name will automatically be added to the front of the example if the route is a command. Default: <code>{}</code>.</li>
 </ul><p>Here is an example of a route declaration with all the options:</p>
 
-<div class="highlight highlight-ruby"><pre><span class="n">route</span> <span class="sr">/^echo\s+(.+)/</span><span class="p">,</span> <span class="ss">to</span><span class="p">:</span> <span class="ss">:echo</span><span class="p">,</span> <span class="ss">command</span><span class="p">:</span> <span class="kp">true</span><span class="p">,</span> <span class="n">restrict_to</span><span class="p">:</span> <span class="o">[</span><span class="ss">:testers</span><span class="p">,</span> <span class="ss">:committers</span><span class="o">]</span><span class="p">,</span> <span class="n">help</span> <span class="o">=&gt;</span> <span class="p">{</span>
+<div class="highlight highlight-ruby"><pre><span class="n">route</span> <span class="sr">/^echo\s+(.+)/</span><span class="p">,</span> <span class="ss">:echo</span><span class="p">,</span> <span class="ss">command</span><span class="p">:</span> <span class="kp">true</span><span class="p">,</span> <span class="n">restrict_to</span><span class="p">:</span> <span class="o">[</span><span class="ss">:testers</span><span class="p">,</span> <span class="ss">:committers</span><span class="o">]</span><span class="p">,</span> <span class="n">help</span> <span class="o">=&gt;</span> <span class="p">{</span>
   <span class="s2">"echo FOO"</span> <span class="o">=&gt;</span> <span class="s2">"Replies back with FOO."</span>
 <span class="p">}</span>
 </pre></div>
@@ -432,7 +435,7 @@ Lita: auth remove joe committers
 
 <div class="highlight highlight-ruby"><pre><span class="nb">require</span> <span class="s2">"lita/rspec"</span>
 
-<span class="n">describe</span> <span class="ss">Lita</span><span class="p">:</span><span class="ss">:Adapters</span><span class="o">::</span><span class="no">MyAdapter</span><span class="p">,</span> <span class="ss">lita</span><span class="p">:</span> <span class="kp">true</span> <span class="k">do</span>
+<span class="n">describe</span> <span class="no">Lita</span><span class="o">::</span><span class="no">Adapters</span><span class="o">::</span><span class="no">MyAdapter</span><span class="p">,</span> <span class="ss">lita</span><span class="p">:</span> <span class="kp">true</span> <span class="k">do</span>
   <span class="c1"># ...</span>
 <span class="k">end</span>
 </pre></div>
@@ -450,7 +453,7 @@ Lita: auth remove joe committers
 
 <div class="highlight highlight-ruby"><pre><span class="nb">require</span> <span class="s2">"lita/rspec"</span>
 
-<span class="n">describe</span> <span class="ss">Lita</span><span class="p">:</span><span class="ss">:Handlers</span><span class="o">::</span><span class="no">MyHandler</span><span class="p">,</span> <span class="n">lita_handler</span><span class="p">:</span> <span class="kp">true</span> <span class="k">do</span>
+<span class="n">describe</span> <span class="no">Lita</span><span class="o">::</span><span class="no">Handlers</span><span class="o">::</span><span class="no">MyHandler</span><span class="p">,</span> <span class="n">lita_handler</span><span class="p">:</span> <span class="kp">true</span> <span class="k">do</span>
   <span class="c1"># ...</span>
 <span class="k">end</span>
 </pre></div>
@@ -516,7 +519,7 @@ Lita: auth remove joe committers
 <p>If you want to send a message or command from a user other than the default test user (set up for you with <code>let(:user)</code> by <code>Lita::RSpec</code>), you can invoke either method with the <code>:as</code> option, supplying a <code>Lita::User</code> object.</p>
 
 <div class="highlight highlight-ruby"><pre><span class="n">it</span> <span class="s2">"lets everyone know that Carl is happy"</span> <span class="k">do</span>
-  <span class="n">carl</span> <span class="o">=</span> <span class="ss">Lita</span><span class="p">:</span><span class="ss">:User</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="mi">123</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="s2">"Carl"</span><span class="p">)</span>
+  <span class="n">carl</span> <span class="o">=</span> <span class="no">Lita</span><span class="o">::</span><span class="no">User</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="mi">123</span><span class="p">,</span> <span class="nb">name</span><span class="p">:</span> <span class="s2">"Carl"</span><span class="p">)</span>
   <span class="n">send_message</span><span class="p">(</span><span class="s2">"I'm happy!"</span><span class="p">,</span> <span class="ss">as</span><span class="p">:</span> <span class="n">carl</span><span class="p">)</span>
   <span class="n">expect</span><span class="p">(</span><span class="n">replies</span><span class="o">.</span><span class="n">last</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">eq</span><span class="p">(</span><span class="s2">"Hey, everyone! Carl is happy! Isn't that nice?"</span><span class="p">)</span>
 <span class="k">end</span>
@@ -590,7 +593,7 @@ Lita: auth remove joe committers
 <p><a href="http://opensource.org/licenses/MIT">MIT</a></p>
       </section>
       <footer>
-        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+        <p><small>Hosted on <a href="http://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
       </footer>
     </div>
     <!--[if !IE]><script>fixScale(document);</script><![endif]-->
