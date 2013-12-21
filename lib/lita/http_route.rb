@@ -14,9 +14,21 @@ module Lita
     # @return [Symbol, String] The method name.
     attr_reader :method_name
 
-    # The URL path component that will trigger the route.
+    # The URL path component specified in the handler, possibly containing dynamic parts
     # @return [String] The path.
     attr_reader :path
+
+    # The regex created from the above URL path, that will trigger the route.
+    # @return [String] The compiled_path.
+    attr_reader :compiled_path
+
+    # Flag indicating if route contains dynamic parts
+    # @return [TrueClass, FalseClass] The flag
+    attr_reader :dynamic
+
+    # Optionnal route named params for dynamic routes
+    # @return [Array] The params collection
+    attr_reader :params
 
     # @param handler_class [Lita::Handler] The handler registering the route.
     def initialize(handler_class)
@@ -50,6 +62,10 @@ module Lita
     define_http_method :link
     define_http_method :unlink
 
+    def dynamic?
+      dynamic
+    end
+
     private
 
     # Creates a new HTTP route.
@@ -58,7 +74,22 @@ module Lita
       @path = path
       @method_name = method_name
 
+      compile
       handler_class.http_routes << self
+    end
+
+    # Converts route to regex, extracting params if present
+    def compile
+      @dynamic = false
+      @params = []
+      parts = path.split("/").map! do |part|
+        part.gsub(/^:(\w+)$/) do |match|
+          @dynamic = true
+          @params << $1
+          "([^/?#]+)"
+        end
+      end
+      @compiled_path = /\A#{parts.join("/")}\z/
     end
   end
 end

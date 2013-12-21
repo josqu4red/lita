@@ -1,12 +1,6 @@
 module Lita
   # A +Rack+ application to serve routes registered by handlers.
   class RackApp
-    # The character that separates the pieces of a URL's path component.
-    PATH_SEPARATOR = "/"
-
-    # A +Struct+ representing a route's destination handler and method name.
-    RouteMapping = Struct.new(:handler, :method_name)
-
     # All registered paths. Used to respond to HEAD requests.
     # @return [Array<String>] The array of paths.
     attr_reader :all_paths
@@ -31,8 +25,8 @@ module Lita
       mapping = get_mapping(request)
 
       if mapping
-        serve(mapping, request)
-      elsif request.head? && all_paths.include?(request.path)
+        process_request(mapping, request)
+      elsif request.head? && !all_paths.select{ |path, route| request.path =~ path }.empty?
         Lita.logger.info "HTTP HEAD #{request.path} was a 204."
         [204, {}, []]
       else
@@ -55,7 +49,7 @@ LOG
 
     # Collect all registered paths. Used for responding to HEAD requests.
     def collect_paths
-      @all_paths = routes.values.map { |hash| hash.keys.first }.uniq
+      @all_paths = routes.values.map { |hash| hash.keys }.flatten
     end
 
     # Registers routes in the route mapping for each handler's defined routes.
@@ -67,48 +61,46 @@ LOG
     end
 
     def get_mapping(request)
-      routes[request.request_method][request.path]
+      routes[request.request_method].select{ |path, route| request.path =~ path }.values.first
     end
 
     # Registers a route.
     def register_route(handler, route)
-      cleaned_path = clean_path(route.path)
-
-      if @routes[route.http_method][cleaned_path]
+      if @routes[route.http_method][route.compiled_path]
         Lita.logger.fatal <<-ERR.chomp
 #{handler.name} attempted to register an HTTP route that was already \
-registered: #{route.http_method} "#{cleaned_path}"
+registered: #{route.http_method} "#{route.path}" (#{route.compiled_path})
 ERR
         abort
       end
 
       Lita.logger.debug <<-LOG.chomp
-Registering HTTP route: #{route.http_method} #{cleaned_path} to \
+Registering HTTP route: #{route.http_method} #{route.path} (#{route.compiled_path}) to \
 #{handler}##{route.method_name}.
 LOG
-      @routes[route.http_method][cleaned_path] = RouteMapping.new(
-        handler,
-        route.method_name
-      )
+      @routes[route.http_method][route.compiled_path] = route
+    end
+
+    #
+    def process_request(mapping, request)
+      if mapping.dynamic?
+        match = mapping.compiled_path.match request.path
+        path_params = Hash[mapping.params.zip(match.captures)]
+        request.params.merge!(path_params)
+      end
+
+      serve(mapping, request)
     end
 
     def serve(mapping, request)
       Lita.logger.info <<-LOG.chomp
 Routing HTTP #{request.request_method} #{request.path} to \
-#{mapping.handler}##{mapping.method_name}.
+#{mapping.handler_class}##{mapping.method_name}.
 LOG
       response = Rack::Response.new
-      instance = mapping.handler.new(robot)
+      instance = mapping.handler_class.new(robot)
       instance.public_send(mapping.method_name, request, response)
       response.finish
-    end
-
-    # Ensures that paths begin with one slash and do not end with one.
-    def clean_path(path)
-      path.strip!
-      path.chop! while path.end_with?(PATH_SEPARATOR)
-      path = path[1..-1] while path.start_with?(PATH_SEPARATOR)
-      "/#{path}"
     end
   end
 end
