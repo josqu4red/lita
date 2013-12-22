@@ -25,6 +25,7 @@ module Lita
     # Flag indicating if route contains dynamic parts
     # @return [TrueClass, FalseClass] The flag
     attr_reader :dynamic
+    alias_method :dynamic?, :dynamic
 
     # Optionnal route named params for dynamic routes
     # @return [Array] The params collection
@@ -61,10 +62,6 @@ module Lita
     define_http_method :options
     define_http_method :link
     define_http_method :unlink
-
-    def dynamic?
-      dynamic
-    end
 
     private
 
